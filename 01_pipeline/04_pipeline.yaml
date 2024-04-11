@@ -37,6 +37,8 @@ spec:
       workspaces:
         - name: output
           workspace: code-workspace
+        - name: basic-auth
+          workspace: basic-auth
       params:
         - name: url
           value: $(params.git-url)
@@ -92,15 +94,16 @@ spec:
           value: Tekton Pipeline
         - name: GIT_SCRIPT
           value: |
-            rm -rf $(params.deployment-name)
-            mkdir -p $(params.deployment-name)
-            cd $(params.deployment-name)
+            rm -rf unified-gitops-repo
+            mkdir -p unified-gitops-repo
+            cd unified-gitops-repo
             git init
             git remote add origin $(params.git-infra-url)
             git pull origin main
             git checkout -b main
             ls -lah .
-            sed -i "s,\(image:\).*,\1 $(params.image-url):$(tasks.fetch-repository.results.commit) ," app/deployment.yaml
+            cd apps/$(params.deployment-name)/app
+            sed -i "s,\(image:\).*,\1 $(params.image-url):$(tasks.fetch-repository.results.commit)," deployment.yaml
             git add -A
             git commit -m "Automatic update image tag using tekton. Now service deployed with tag $(tasks.fetch-repository.results.commit)"
             git push --set-upstream origin main
